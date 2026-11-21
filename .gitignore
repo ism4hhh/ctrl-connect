@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-single
+qa/out
+frames
+refs/recording.mp4
+refs/ig
+.vercel
+ctrl-connect-source.zip

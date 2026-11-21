@@ -1,0 +1,26 @@
+import { chromium } from 'playwright'
+import fs from 'node:fs'
+const out = 'qa/out/deck2'; fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true })
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1920, height: 1080 } })
+const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()) })
+const url = 'file://' + process.cwd() + '/plusone_deck.html'
+const shot = async (name, w = 1500) => { await p.waitForTimeout(w); await p.screenshot({ path: `${out}/${name}.png` }) }
+await p.goto(url + '#2'); await shot('title', 2500)
+await p.evaluate(() => window.__deck.show(4)); await shot('solution', 2500)
+await p.evaluate(() => window.__deck.show(5)); await shot('demo-qr', 2000)
+await p.locator('#next').click(); await shot('demo-phone', 3500)
+const box = await p.evaluate(() => { const r = document.querySelector('.phone').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right), h: Math.round(r.height), w: Math.round(r.width) } })
+const f = p.frameLocator('.phone iframe')
+await f.locator('.tile[data-label="Socials"]').click(); await shot('demo-socials', 900)
+await f.locator('.card.event').first().click(); await shot('demo-event', 900)
+await f.locator('.footer .btn').click(); await p.waitForTimeout(600)
+await f.locator('.form .btn').last().click(); await p.waitForTimeout(400)
+await f.locator('.form .btn').last().click(); await p.waitForTimeout(400)
+await f.locator('.link:has-text("demo code")').click(); await f.locator('.form .btn').last().click(); await p.waitForTimeout(900)
+const locked = await f.locator('.card.locked').count()
+await f.locator('.attendees .btn:has-text("Match")').first().click(); await p.waitForTimeout(2600); await shot('demo-matched', 300)
+const matched = await f.locator('.sheet h3').textContent().catch(() => null)
+await p.evaluate(() => window.__deck.show(7)); await p.locator('#next').click(); await shot('close', 1500)
+const text = await p.evaluate(() => Array.from(document.querySelectorAll('.slide')).map((s) => s.innerText).join('\n'))
+console.log(JSON.stringify({ phoneBox: box, viewport: [1920, 1080], lockedAfterSignup: locked, matchSheet: matched, dashes: (text.match(/[-–—]/g) || []).length, plusOne: (text.match(/Plus One/g) || []).length, errors: errs }, null, 1))
+await b.close()

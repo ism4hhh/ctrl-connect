@@ -1,0 +1,47 @@
+// Click through the Plus One flows on a phone viewport, screenshot each step, report console errors.
+import { chromium } from 'playwright'
+import { createServer } from 'vite'
+import fs from 'node:fs'
+const out = 'qa/out/smoke'; fs.mkdirSync(out, { recursive: true })
+const server = await createServer({ server: { port: 5197, strictPort: true }, logLevel: 'silent' }); await server.listen()
+const browser = await chromium.launch()
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+const errors = []
+page.on('pageerror', (e) => errors.push('pageerror: ' + e.message))
+page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()) })
+let n = 0
+const shot = async (name) => { await page.waitForTimeout(450); await page.screenshot({ path: `${out}/${String(++n).padStart(2, '0')}-${name}.png` }) }
+const tap = async (sel) => { await page.locator(sel).last().click(); }
+await page.goto('http://localhost:5197/?qa=1', { waitUntil: 'networkidle' })
+await page.evaluate(() => localStorage.clear())
+await page.reload({ waitUntil: 'networkidle' })
+await shot('home')
+await page.evaluate(() => { document.querySelector('.scroll').scrollTop = 380 }); await shot('home-newtiles')
+await tap('.tile[data-label="Socials"]'); await shot('socials')
+await tap('.chip:has-text("Free")'); await shot('socials-free')
+await tap('.chip:has-text("All")')
+await tap('.card.event'); await shot('event-locked')
+await page.locator('.footer .btn').click(); await shot('signup-1')
+await tap('.form .btn'); await shot('signup-2')
+await tap('.form .btn'); await shot('signup-3')
+await tap('.link:has-text("demo code")'); await shot('signup-code')
+await tap('.form .btn'); await page.waitForTimeout(600); await shot('event-going')
+await page.evaluate(() => { document.querySelector('.screen .body').scrollTop = 420 }); await shot('event-attendees')
+await page.locator('.attendees .btn:has-text("Match")').first().click(); await shot('match-pending')
+await page.waitForTimeout(2300); await shot('match-done')
+await tap('.sheet .btn.plain')
+await tap('.header .back'); await tap('.header .back')
+await tap('.tile[data-label="Opportunities"]'); await shot('opps')
+await tap('.seg.small button:has-text("Deadlines")'); await shot('opps-timeline')
+await tap('.tl-item'); await shot('opp-detail')
+await tap('.btn.secondary:has-text("buddy")'); await shot('opp-buddies')
+await tap('.header .back'); await tap('.header .back')
+await tap('.tile[data-label="Free & Cheap"]'); await shot('freecheap')
+await page.evaluate(() => { document.querySelector('.screen .body').scrollTop = 700 }); await shot('freecheap-2')
+await page.locator('.btn.small.secondary:has-text("Report")').first().click(); await shot('freecheap-reported')
+await tap('.header .back')
+await tap('.nav button:has-text("Settings")'); await shot('settings')
+await tap('.nav button:has-text("Calendar")'); await shot('calendar')
+await tap('.nav button:has-text("My Campus")'); await shot('home-again')
+console.log('errors:', errors.length ? errors : 'none')
+await browser.close(); await server.close()
