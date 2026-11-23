@@ -91,3 +91,15 @@ npm run dev
 ```
 
 `npm run qa` re-runs the screenshot comparison (needs the reference screenshots in `refs/`). `node scripts/smoke.mjs` clicks through every flow and screenshots each step.
+
+## Team
+
+Built in one day at WoHack 2026 (Queen Mary University of London) by:
+
+| Name | Role |
+|---|---|
+| Ismah Qureshi ([@ism4hhh](https://github.com/ism4hhh)) | Lead developer & deployment: co-built the React/Vite/Tailwind front end and the iPhone-frame demo, deployed it on Vercel, and set up the repository |
+| Kaniz Humayra ([@kaniz-humayra](https://github.com/kaniz-humayra)) | Front-end development & data: co-built the React/Vite front end; created the demo dataset (society events, opportunities by year, deals and free-stuff listings, society and company logos) |
+| [Imaan Mirza](https://devpost.com/imaanmz02) | UX & interface design: designed the screens and user flows (Socials, Opportunities, Free & Cheap), layout and animations, and the design audit |
+| [Nabila Alhadi](https://devpost.com/nabila10113) | Research & safety design: defined the user persona and barriers; designed the buddy matching and safety rules (mutual opt-in, verified emails, hide-me) |
+| [Forehanmi Adeoye](https://devpost.com/forehanmi) | Pitch, testing & submission: wrote the demo script, recorded the 3-minute video, ran testing and QA of the flows, and wrote the Devpost submission |
